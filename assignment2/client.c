@@ -12,12 +12,16 @@ int main() {
     printf("Time client\n");
 
     // create an unnamed socket, and then name it
-    client_socket = socket(AF_INET, SOCK_STREAM, 0);
+    if((client_socket = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+    {
+      printf("Error creating socket");
+      return -1;
+    }
 
-    // create addr struct
     client_address.sin_family = AF_INET;
-    client_address.sin_addr.s_addr = inet_addr(SERVER_ADDR);
     client_address.sin_port = htons(PORT);
+    client_address.sin_addr.s_addr = inet_addr(SERVER_ADDR);
+
 
     // connect to server socket
     if (connect(client_socket, (struct sockaddr *)&client_address, sizeof(client_address))) {
@@ -26,7 +30,10 @@ int main() {
     }
 
     while (TRUE) {
-        printf("Input: ");
+        // read value
+        printf("Connected !");
+        int valread = read(client_socket, input, 100);
+        printf("Information: %s", input);
         // read string
         fgets(input, sizeof(input), stdin);
 
