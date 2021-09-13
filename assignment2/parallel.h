@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <signal.h>
 
 // socket/bind/listen/accept
 #include <arpa/inet.h>
@@ -19,7 +20,7 @@
 /************************************************************************
  * function prototype declarations
  ************************************************************************/
-void handle_client(int client_socket);
+void *handle_client(void *client_socket);
 
 /************************************************************************
  * preprocessor directives
