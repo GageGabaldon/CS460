@@ -4,7 +4,6 @@
  * MAIN
  ************************************************************************/
 int main() {
-    char input[100];                    // buffer for user input
     int client_socket;                  // client side socket
     struct sockaddr_in client_address;  // client socket naming struct
     char c;
@@ -30,27 +29,17 @@ int main() {
     }
 
     while (TRUE) {
-        // read value
-        printf("Connected !");
-        int valread = read(client_socket, input, 100);
-        printf("Information: %s", input);
-        // read string
-        fgets(input, sizeof(input), stdin);
+        printf("Connected ...\n");
 
-        int i = 0;
-        while (*(input + i)) {
-            // make the request to the server
-            write(client_socket, input + i, sizeof(char));
-            // get the result
+        while(c != '*') {
+            // read char by char
             read(client_socket, &c, sizeof(char));
-            if (c == 'q') {
-                close(client_socket);
-                printf("\nDone!\n");
-                exit(EXIT_SUCCESS);
-            }
             printf("%c", c);
-            i++;
         }
+        printf("\n");
+        close(client_socket);
+        printf("\nDone!\n");
+        exit(EXIT_SUCCESS);
     }
 
     return EXIT_SUCCESS;
