@@ -1,4 +1,4 @@
-#include "parallel.h"
+#include "ParallelServer.h"
 #include <pthread.h>
 
 /************************************************************************
