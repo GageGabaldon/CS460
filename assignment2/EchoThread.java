@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-
+// class that handles client requests. 
 public class EchoThread extends Thread {
   Socket clientSocket;
   public EchoThread(Socket clientSocket){

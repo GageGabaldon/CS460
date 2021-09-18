@@ -8,6 +8,7 @@ import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+// echo server code
 public class EchoServer {
 
     private static ServerSocket serverSocket;
