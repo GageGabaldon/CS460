@@ -64,17 +64,15 @@ class Worker extends Thread implements HttpConstants {
     }
 
     void handleClient() throws IOException {
-        InputStream is = new BufferedInputStream(socket.getInputStream());
-        PrintStream ps = new PrintStream(socket.getOutputStream());
+        InputStream fromClient = new BufferedInputStream(socket.getInputStream());
+        PrintStream toClient = new PrintStream(socket.getOutputStream());
         /* we will only block in read for this many milliseconds
          * before we fail with java.io.InterruptedIOException,
          * at which point we will abandon the connection.
          */
-        socket.setSoTimeout(webServer.timeout);
-        socket.setTcpNoDelay(true);
-
-         int number = (int)is.readByte();
-         int step = 0;
+        System.out.println("YOo it the due");
+         String number = fromClient.read();
+         int steps = 0;
          int tempNumber;
 
          if(number == 1)
@@ -98,7 +96,7 @@ class Worker extends Thread implements HttpConstants {
             }
          }
 
-         ps.writeByte((char)steps);
+         toClient.write(steps);
 
          socket.close();
     }
