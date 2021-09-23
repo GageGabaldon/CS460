@@ -1,108 +1,50 @@
-#include "ParallelServer.h"
-#include <pthread.h>
+#include "server.h"
 
 /************************************************************************
  * MAIN
  ************************************************************************/
-// number of clients
-int clients = 0;
+int main() {
+    char input[100];                    // buffer for user input
+    int client_socket;                  // client side socket
+    struct sockaddr_in client_address;  // client socket naming struct
+    char c;
 
-int main(int argc, char** argv) {
-    int server_socket;                 // descriptor of server socket
-    struct sockaddr_in server_address; // for naming the server's listening socket
-    int client_socket;
+    printf("Echo client\n");
 
-    // sent when ,client disconnected
-    signal(SIGPIPE, SIG_IGN);
+    // create an unnamed socket, and then name it
+    client_socket = socket(AF_INET, SOCK_STREAM, 0);
+    // create addr struct
+    client_address.sin_family = AF_INET;
+    client_address.sin_addr.s_addr = inet_addr(SERVER_ADDR);
+    client_address.sin_port = htons(PORT);
 
-    // create unnamed network socket for server to listen on
-    if ((server_socket = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
-        perror("Error creating socket");
+    // connect to server socket
+    if (connect(client_socket, (struct sockaddr *)&client_address, sizeof(client_address)) == -1) {
+        perror("Error connecting to server!\n");
         exit(EXIT_FAILURE);
     }
 
-    // name the socket (making sure the correct network byte ordering is observed)
-    server_address.sin_family      = AF_INET;           // accept IP addresses
-    server_address.sin_addr.s_addr = htonl(INADDR_ANY); // accept clients on any interface
-    server_address.sin_port        = htons(PORT);       // port to listen on
-
-    // binding unnamed socket to a particular port
-    if (bind(server_socket, (struct sockaddr *)&server_address, sizeof(server_address)) == -1) {
-        perror("Error binding socket");
-        exit(EXIT_FAILURE);
-    }
-
-    // listen for client connections (pending connections get put into a queue)
-    if (listen(server_socket, NUM_CONNECTIONS) == -1) {
-        perror("Error listening on socket");
-        exit(EXIT_FAILURE);
-    }
-
-    // starting the server
-    printf("Starting Server ...\n");
-
-    // server loop
     while (TRUE) {
+        printf("Input into 3A + 1 algorithm: ");
+        // read an integer
+        fgets(input, sizeof(input), stdin);
 
-        // accept connection to client
-        if ((client_socket = accept(server_socket, NULL, NULL)) == -1) {
-            perror("Error accepting client");
-        } else {
-            clients += 1;
-            printf("\nAccepted client %d\n", clients);
-
-            pthread_t newThread;
-            pthread_create(&newThread, NULL, handle_client, (void *)&client_socket);
-            pthread_detach(newThread);
+        int i = 0;
+        while (*(input + i)) {
+            // make the request to the server
+            write(client_socket, input + i, sizeof(char));
+            // get the result
+            read(client_socket, &c, sizeof(char));
+            if (c == 'q') {
+                close(client_socket);
+                printf("\nDone!\n");
+                exit(EXIT_SUCCESS);
+            }
+            printf("%c", c);
+            i++;
         }
     }
+    
+    return EXIT_SUCCESS;
 }
 
-
-/************************************************************************
- * handle client
- ************************************************************************/
-// thread function to handle multiple requests
-void *handle_client(void *generic_socket) {
-    int *socket = (int *)generic_socket;
-    int client_socket = *socket;
-
-    char input;
-    int keep_going = TRUE;
-
-    while (keep_going) {
-        // read char from client
-        switch (read(client_socket, &input, sizeof(char))) {
-            case 0:
-                keep_going = FALSE;
-                printf("\nEnd of stream, returning ...\n");
-                break;
-            case -1:
-                perror("Error reading from network!\n");
-                keep_going = FALSE;
-                break;
-        }
-
-        printf("%c", input);
-
-        // check if we terminate
-        if (input == 'q') {
-            keep_going = FALSE;
-        }
-        // send result back to client
-        write(client_socket, &input, sizeof(char));
-
-    }
-
-    // cleanup
-    if (close(client_socket) == -1) {
-        perror("Error closing socket");
-        exit(EXIT_FAILURE);
-    }
-
-    printf("\nClosed socket to client, exit\n");
-
-    // iterate clients;
-    clients -= 1;
-    return NULL;
-}
