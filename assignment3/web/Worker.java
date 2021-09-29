@@ -4,6 +4,7 @@ package web;
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.nio.*;
 
 class Worker extends Thread implements HttpConstants {
 
@@ -64,16 +65,17 @@ class Worker extends Thread implements HttpConstants {
     }
 
     void handleClient() throws IOException {
-        InputStream fromClient = new BufferedInputStream(socket.getInputStream());
-        PrintStream toClient = new PrintStream(socket.getOutputStream());
-        /* we will only block in read for this many milliseconds
-         * before we fail with java.io.InterruptedIOException,
-         * at which point we will abandon the connection.
-         */
-        System.out.println("YOo it the due");
-         String number = fromClient.read();
-         int steps = 0;
-         int tempNumber;
+      // input and output streams
+        InputStream is = new BufferedInputStream(socket.getInputStream());
+        PrintStream ps = new PrintStream(socket.getOutputStream());
+        System.out.println("Waiting for input ...");
+
+        r = is.read(buffer);
+        System.out.println(r);
+
+        int number = buffer[0];
+        int steps = 0;
+        int tempNumber;
 
          if(number == 1)
          {
@@ -96,7 +98,7 @@ class Worker extends Thread implements HttpConstants {
             }
          }
 
-         toClient.write(steps);
+         ps.write(steps);
 
          socket.close();
     }
