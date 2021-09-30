@@ -9,7 +9,8 @@ int main() {
     struct sockaddr_in client_address;  // client socket naming struct
     int c;
 
-    printf("Echo client\n");
+    // client name
+    printf("3A + 1 client\n");
 
     // create an unnamed socket, and then name it
     client_socket = socket(AF_INET, SOCK_STREAM, 0);
@@ -23,21 +24,20 @@ int main() {
         perror("Error connecting to server!\n");
         exit(EXIT_FAILURE);
     }
-
-    while (TRUE) {
-        printf("Input into 3A + 1 algorithm: ");
+      // simple message
+        printf("\nInteger input for 3A + 1 algorithm: ");
 
         // read an integer
         scanf("%d", &input);
-        printf("%d\n",  input);
 
         // transmit the nunmber to compute
         write(client_socket, &input, sizeof(int));
 
         // get the result
         read(client_socket, &c, sizeof(int));
-        printf("\n%d\n", c);
-    }
+
+        // print steps
+        printf("\nThe number of steps are: %d\n", c);
 
     return EXIT_SUCCESS;
 }

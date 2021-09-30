@@ -4,7 +4,6 @@ package web;
 import java.io.*;
 import java.net.*;
 import java.util.*;
-import java.nio.*;
 
 class Worker extends Thread implements HttpConstants {
 
@@ -70,34 +69,32 @@ class Worker extends Thread implements HttpConstants {
         PrintStream ps = new PrintStream(socket.getOutputStream());
         System.out.println("Waiting for input ...");
 
-        r = is.read(buffer);
-        System.out.println(r);
+        // read an integer
+        is.read(buffer);
 
+        // set a number and steps
         int number = buffer[0];
         int steps = 0;
-        int tempNumber;
+        int workingNumber = number;
 
-         if(number == 1)
+        // if the number is not one perform the algorithm
+         if(number != 1)
          {
-
-         }
-         else
-         {
-            tempNumber = (3 * number) + 1;
-            steps++;
-            while(tempNumber <= 1)
+            // while tempNUm
+            while(workingNumber > 1)
             {
-               if(tempNumber % 2 == 0)
+               if(workingNumber % 2 == 0)
                {
-                  tempNumber /= 2;
+                  workingNumber /= 2;
                }
                else
                {
-                  tempNumber = (3 * tempNumber) + 1;
+                  workingNumber = (3 * workingNumber) + 1;
                }
+               steps++;
             }
          }
-
+         System.out.println("Number of steps: " + steps);
          ps.write(steps);
 
          socket.close();
