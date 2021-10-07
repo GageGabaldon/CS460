@@ -12,6 +12,7 @@ struct sockaddr_in server_address; // for naming the server's listening socket
 int main(int argc, char** argv) {
     // sent when ,client disconnected
     signal(SIGPIPE, SIG_IGN);
+    char input;
 
     // create unnamed network socket for server to listen on
     if ((server_socket = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
@@ -46,6 +47,7 @@ int main(int argc, char** argv) {
       pthread_detach(newThread);
     }
 
+    // keep the threads running
     while(TRUE)
     {
 
@@ -64,11 +66,12 @@ void *handle_client(void *id) {
 
     while(TRUE)
     {
-      pthread_mutex_lock(&lock);
+      // lock while accepting clients to prevent
+      //pthread_mutex_lock(&lock);
       if ((client_socket = accept(server_socket, NULL, NULL)) == -1) {
           perror("Error accepting client");
       }
-      pthread_mutex_unlock(&lock);
+      //pthread_mutex_unlock(&lock);
 
       readWrite(client_socket, realID);
     }

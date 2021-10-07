@@ -60,6 +60,9 @@ void client_wrapper(void *number_ptr)
     // write to server number to calcuate
     write(client_socket, &number, sizeof(int));
 
+    // sleep a second
+    usleep(300);
+
     // read the input from 3A + 1
     read(client_socket, &input, sizeof(int));
     close(client_socket);
