@@ -38,4 +38,4 @@ void readWrite(int socket, int id);
 #define TRUE !false
 
 // number of pending connections in the connection queue
-#define NUM_CONNECTIONS 1
+#define NUM_CONNECTIONS 10

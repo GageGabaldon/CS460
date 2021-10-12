@@ -7,14 +7,17 @@
  ************************************************************************/
 // number of clients
 pthread_mutex_t lock;
+pthread_mutex_t inlock;
 int server_socket;                 // descriptor of server socket
 struct sockaddr_in server_address; // for naming the server's listening socket
+int thread_num;
 
 int main(int argc, char** argv) {
     // sent when ,client disconnected
     signal(SIGPIPE, SIG_IGN);
     char input;
     int task_counter;
+    thread_num = 0;
 
     threadpool pool = threadpool_create();
 
@@ -42,16 +45,25 @@ int main(int argc, char** argv) {
     }
 
     pthread_mutex_init(&lock, NULL);
+    pthread_mutex_init(&inlock, NULL);
+
+    printf("Starting Server ...\n");
 
     while(TRUE)
     {
 
-
-    }
-    for (task_counter=1; task_counter <= NUMBER_TASKS; task_counter++)
-    {
-      // in each loop, execute three_a_plus_one_wrapper in a thread from the pool
-      threadpool_add_task(pool, task_copy_arguments, handle_client, (void*)&task_counter);
+      if(thread_num < 30)
+      {
+         pthread_mutex_lock(&lock);
+         thread_num++;
+         pthread_mutex_unlock(&lock);
+         // in each loop, execute three_a_plus_one_wrapper in a thread from the pool
+         threadpool_add_task(pool, task_copy_arguments, handle_client, (void*)&thread_num);
+      }
+      else
+      {
+         thread_num--;
+      }
     }
 }
 
@@ -63,32 +75,36 @@ int main(int argc, char** argv) {
 void handle_client(void *id) {
     int *id_pointer = (int *)id;
     int realID = *id_pointer;
-    int client_socket;
     int input;
     int output;
-
+    int client_socket;
 
     if ((client_socket = accept(server_socket, NULL, NULL)) == -1) {
-          perror("Error accepting client");
-     }
+         perror("Error accepting client");
+    }
+    printf("Opening socket %d\n", client_socket);
+
      // read the int from data stream
-     read(socket, &input, sizeof(int));
+     read(client_socket, &input, sizeof(int));
 
      // calcuate the 3A + 1 algorithm
       output = three_a_plus_one(input);
 
      // transmit the nunmber computed
-     write(socket, &output, sizeof(int));
+     write(client_socket, &output, sizeof(int));
 
+     printf("THREAD %d: Given number: %d the output is %d\n", realID, input, output);
+     printf("THREAD %d: Closed socket %d\n", realID, client_socket);
      sleep(.5);
+     pthread_mutex_lock(&inlock);
+     thread_num--;
+     pthread_mutex_unlock(&inlock);
 
       // cleanup
-      if (close(socket) == -1) {
+      if (close(client_socket) == -1) {
          perror("Error closing socket");
          exit(EXIT_FAILURE);
       }
-
-      printf("THREAD %d: Given number: %d the output is %d\n", realID, input, output);
 }
 
 

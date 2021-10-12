@@ -71,6 +71,7 @@ void *handle_client(void *id) {
       if ((client_socket = accept(server_socket, NULL, NULL)) == -1) {
           perror("Error accepting client");
       }
+      printf("Creating connection on socket: %d\n", client_socket);
       //pthread_mutex_unlock(&lock);
 
       readWrite(client_socket, realID);
@@ -93,14 +94,14 @@ void readWrite(int socket, int id)
    // transmit the nunmber computed
    write(socket, &output, sizeof(int));
 
+   printf("THREAD %d: Given number: %d the output is %d\n", id, input, output);
+   printf("THREAD %d: Closed socket %d\n", id, socket);
    sleep(.5);
    // cleanup
    if (close(socket) == -1) {
       perror("Error closing socket");
       exit(EXIT_FAILURE);
    }
-
-   printf("THREAD %d: Given number: %d the output is %d\n", id, input, output);
 }
 
 

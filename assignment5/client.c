@@ -31,7 +31,7 @@ int main() {
 
     // lame way to wait for everybody to get done
     // in a network server, this is not needed as the main thread keeps accepting connections
-    sleep(45);
+    sleep(10);
 
     exit(EXIT_SUCCESS);
 }
@@ -60,15 +60,14 @@ void client_wrapper(void *number_ptr)
     // write to server number to calcuate
     write(client_socket, &number, sizeof(int));
 
-    // sleep a second
-    usleep(300);
 
     // read the input from 3A + 1
     read(client_socket, &input, sizeof(int));
+
+    sleep(.5);
+
+    printf("Closing thread ID %p ----> %d: %d\n", client_socket, number, input);
     close(client_socket);
-
-
-    printf("thread ID %p ----> %d: %d\n", pthread_self(), number, input);
 }
 
 /* ******************************************************* */

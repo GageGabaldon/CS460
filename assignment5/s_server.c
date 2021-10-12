@@ -39,12 +39,14 @@ int main(int argc, char** argv) {
         exit(EXIT_FAILURE);
     }
 
+    printf("Starting Server ...\n");
     // keep the threads running
     while(TRUE)
     {
       if ((client_socket = accept(server_socket, NULL, NULL)) == -1) {
           perror("Error accepting client");
       }
+      printf("Creating connection on socket: %d\n", client_socket);
       readWrite(client_socket, 1);
    }
 }
@@ -64,13 +66,13 @@ void readWrite(int socket, int id)
 
    sleep(.5);
 
+   printf("THREAD %d: Given number: %d the output is %d\n", id, input, output);
+   printf("THREAD %d: Closed socket %d\n", id, socket);
    // cleanup
    if (close(socket) == -1) {
       perror("Error closing socket");
       exit(EXIT_FAILURE);
    }
-
-   printf("THREAD %d: Given number: %d the output is %d\n", id, input, output);
 }
 
 

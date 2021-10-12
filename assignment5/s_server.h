@@ -34,3 +34,5 @@ void readWrite(int socket, int id);
 // I cannot let go of the old-fashioned way :) - for readability ...
 #define FALSE false
 #define TRUE !false
+
+# define NUM_CONNECTIONS 1
