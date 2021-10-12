@@ -7,7 +7,6 @@
  ************************************************************************/
 // number of clients
 pthread_mutex_t lock;
-pthread_mutex_t inlock;
 int server_socket;                 // descriptor of server socket
 struct sockaddr_in server_address; // for naming the server's listening socket
 int thread_num;
@@ -45,7 +44,6 @@ int main(int argc, char** argv) {
     }
 
     pthread_mutex_init(&lock, NULL);
-    pthread_mutex_init(&inlock, NULL);
 
     printf("Starting Server ...\n");
 
@@ -78,6 +76,9 @@ void handle_client(void *id) {
     int input;
     int output;
     int client_socket;
+    pthread_mutex_lock(&lock);
+    thread_num--;
+    pthread_mutex_unlock(&lock);
 
     if ((client_socket = accept(server_socket, NULL, NULL)) == -1) {
          perror("Error accepting client");
@@ -96,10 +97,6 @@ void handle_client(void *id) {
      printf("THREAD %d: Given number: %d the output is %d\n", realID, input, output);
      printf("THREAD %d: Closed socket %d\n", realID, client_socket);
      sleep(.5);
-     pthread_mutex_lock(&inlock);
-     thread_num--;
-     pthread_mutex_unlock(&inlock);
-
       // cleanup
       if (close(client_socket) == -1) {
          perror("Error closing socket");
