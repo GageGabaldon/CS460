@@ -13,7 +13,7 @@ int main(int argc, char** argv) {
     // sent when ,client disconnected
     signal(SIGPIPE, SIG_IGN);
     char input;
-
+    int client_socket;
     // create unnamed network socket for server to listen on
     if ((server_socket = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
         perror("Error creating socket");
@@ -39,18 +39,18 @@ int main(int argc, char** argv) {
 
     pthread_mutex_init(&lock, NULL);
 
-    // starting the server
-    printf("Starting Server ...\n");
-    for (int i = 0; i < MAX_THREADS ; i++) {
-      pthread_t newThread;
-      pthread_create(&newThread, NULL, handle_client, (void *)&i);
-      pthread_detach(newThread);
-    }
+    printf("Starting server ...\n");
 
     // keep the threads running
     while(TRUE)
     {
-
+      // block until accept client
+      if ((client_socket = accept(server_socket, NULL, NULL)) == -1) {
+            perror("Error accepting client");
+      }
+      pthread_t newThread;
+      pthread_create(&newThread, NULL, handle_client, (void *)&client_socket);
+      pthread_detach(newThread);
    }
 }
 
@@ -61,26 +61,17 @@ int main(int argc, char** argv) {
 // thread function to handle multiple requests
 void *handle_client(void *id) {
     int *id_pointer = (int *)id;
-    int realID = *id_pointer;
-    int client_socket;
+    int client_socket = *id_pointer;
 
-    while(TRUE)
-    {
-      // lock while accepting clients to prevent
-      //pthread_mutex_lock(&lock);
-      if ((client_socket = accept(server_socket, NULL, NULL)) == -1) {
-          perror("Error accepting client");
-      }
-      printf("Creating connection on socket: %d\n", client_socket);
-      //pthread_mutex_unlock(&lock);
+   printf("Creating connection on socket: %d\n", client_socket);
 
-      readWrite(client_socket, realID);
-    }
+   readWrite(client_socket, 0);
 
     // should never get here
     return NULL;
 }
 
+// read and write to client
 void readWrite(int socket, int id)
 {
    int input;
@@ -94,8 +85,8 @@ void readWrite(int socket, int id)
    // transmit the nunmber computed
    write(socket, &output, sizeof(int));
 
-   printf("THREAD %d: Given number: %d the output is %d\n", id, input, output);
-   printf("THREAD %d: Closed socket %d\n", id, socket);
+   printf("Given number: %d the output is %d\n", input, output);
+   printf("Closed socket %d\n", socket);
    sleep(.5);
    // cleanup
    if (close(socket) == -1) {

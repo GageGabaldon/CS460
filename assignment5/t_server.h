@@ -41,5 +41,6 @@ void readWrite(int socket, int id);
 #define FALSE false
 #define TRUE !false
 
+#define MAX_THREADS 30
 // number of pending connections in the connection queue
-#define NUM_CONNECTIONS 10
+#define NUM_CONNECTIONS 30

@@ -47,22 +47,15 @@ int main(int argc, char** argv) {
 
     printf("Starting Server ...\n");
 
-    while(TRUE)
-    {
+    for (int i = 0; i < 30 ; i++) {
+      pthread_mutex_lock(&lock);
+      threadpool_add_task(pool, task_copy_arguments, handle_client, (void*)&i);
+   }
 
-      if(thread_num < 30)
-      {
-         pthread_mutex_lock(&lock);
-         thread_num++;
-         pthread_mutex_unlock(&lock);
-         // in each loop, execute three_a_plus_one_wrapper in a thread from the pool
-         threadpool_add_task(pool, task_copy_arguments, handle_client, (void*)&thread_num);
-      }
-      else
-      {
-         thread_num--;
-      }
-    }
+   while(TRUE)
+   {
+
+   }
 }
 
 
@@ -73,35 +66,38 @@ int main(int argc, char** argv) {
 void handle_client(void *id) {
     int *id_pointer = (int *)id;
     int realID = *id_pointer;
+    pthread_mutex_unlock(&lock);
+
     int input;
     int output;
     int client_socket;
-    pthread_mutex_lock(&lock);
-    thread_num--;
-    pthread_mutex_unlock(&lock);
 
-    if ((client_socket = accept(server_socket, NULL, NULL)) == -1) {
-         perror("Error accepting client");
-    }
-    printf("Opening socket %d\n", client_socket);
-
-     // read the int from data stream
-     read(client_socket, &input, sizeof(int));
-
-     // calcuate the 3A + 1 algorithm
-      output = three_a_plus_one(input);
-
-     // transmit the nunmber computed
-     write(client_socket, &output, sizeof(int));
-
-     printf("THREAD %d: Given number: %d the output is %d\n", realID, input, output);
-     printf("THREAD %d: Closed socket %d\n", realID, client_socket);
-     sleep(.5);
-      // cleanup
-      if (close(client_socket) == -1) {
-         perror("Error closing socket");
-         exit(EXIT_FAILURE);
+    // thread loop
+    while(TRUE)
+    {
+      if ((client_socket = accept(server_socket, NULL, NULL)) == -1) {
+           perror("Error accepting client");
       }
+      printf("Opening socket %d\n", client_socket);
+
+       // read the int from data stream
+       read(client_socket, &input, sizeof(int));
+
+       // calcuate the 3A + 1 algorithm
+        output = three_a_plus_one(input);
+
+       // transmit the nunmber computed
+       write(client_socket, &output, sizeof(int));
+
+       printf("THREAD %d: Given number: %d the output is %d\n", realID, input, output);
+       printf("THREAD %d: Closed socket %d\n", realID, client_socket);
+       sleep(.5);
+        // cleanup
+        if (close(client_socket) == -1) {
+           perror("Error closing socket");
+           exit(EXIT_FAILURE);
+        }
+    }
 }
 
 

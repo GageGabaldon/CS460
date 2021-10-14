@@ -66,7 +66,7 @@ void client_wrapper(void *number_ptr)
 
     sleep(.5);
 
-    printf("Closing thread ID %p ----> %d: %d\n", client_socket, number, input);
+    printf("Closing client_socket %d ----> %d: %d\n", client_socket, number, input);
     close(client_socket);
 }
 
