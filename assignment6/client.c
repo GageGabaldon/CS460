@@ -1,13 +1,14 @@
 #include "client.h"
+#include <math.h>
 
 /************************************************************************
  * MAIN
  ************************************************************************/
 int main() {
-    int input;                    // buffer for user input
+    char input[50];                    // buffer for user input
     int client_socket;                  // client side socket
     struct sockaddr_in client_address;  // client socket naming struct
-    int c;
+    double output;
 
     // client name
     printf("Compute Client\n");
@@ -27,20 +28,37 @@ int main() {
     while(TRUE)
     {
       // simple message
-         printf("\nInput a number to compute or exit with X");
+         printf("Input a function to compute or exit with q\n");
 
          // read an integer
-         scanf("%d", &input);
+         fgets(input, sizeof(input), stdin);
 
-         // transmit the nunmber to compute
-         write(client_socket, &input, sizeof(int));
+         if(input[0] == 'q')
+         {
+            char qi = 'q';
+            write(client_socket, &qi, sizeof(char));
+            break;
+         }
+
+         int i = 0;
+         while (*(input + i))
+         {
+            // make the request to the server
+            write(client_socket, input + i, sizeof(char));
+            i++;
+         }
 
          // get the result
-         read(client_socket, &c, sizeof(int));
-
-         // print steps
-         printf("\nThe number of steps are: %d\n", c);
-    }
+         read(client_socket, &output, sizeof(double));
+         if(output == -INFINITY)
+         {
+            printf("Syntax Error\n");
+         }
+         else
+         {
+            printf("Result: %f\n", output);
+         }
+      }
 
     return EXIT_SUCCESS;
 }

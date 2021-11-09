@@ -18,10 +18,15 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include <ctype.h>
+#include <string.h>
+
 /************************************************************************
  * function prototype declarations
  ************************************************************************/
 void ComputeClient(int socket, int id);
+double do_calc(double num1, double num2, char operation);
+double parseString(char *input, int index);
 
 /************************************************************************
  * preprocessor directives

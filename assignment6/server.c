@@ -1,20 +1,16 @@
-#include "s_server.h"
-#include <pthread.h>
+#include "server.h"
+#include <math.h>
 
 /************************************************************************
  * MAIN
  ************************************************************************/
-// number of clients
-pthread_mutex_t lock;
-int server_socket;                 // descriptor of server socket
-struct sockaddr_in server_address; // for naming the server's listening socket
-
 int main(int argc, char** argv) {
+   int server_socket;                 // descriptor of server socket
+   struct sockaddr_in server_address; // for naming the server's listening socket
+   int client_socket;
+
     // sent when ,client disconnected
     signal(SIGPIPE, SIG_IGN);
-    char input;
-    int client_socket;
-
 
     // create unnamed network socket for server to listen on
     if ((server_socket = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
@@ -47,30 +43,190 @@ int main(int argc, char** argv) {
           perror("Error accepting client");
       }
       printf("Creating connection on socket: %d\n", client_socket);
-      readWrite(client_socket, 1);
+      ComputeClient(client_socket, 1);
    }
 }
 
 void ComputeClient(int socket, int id)
 {
-   int input;
+   char input;
+   char string[50];
+   int index = 0;
+   int keep_going = TRUE;
+   int NotDone = TRUE;
+   while(NotDone)
+   {
+      index = 0;
+      memset(string, ' ', 50);
+      while (keep_going)
+      {
+         // read char from client
+         switch (read(socket, &input, sizeof(char)))
+         {
+            case 0:
+               keep_going = FALSE;
+               string[index] = '\0';
+               printf("Finished reading Stream...\n");
+               NotDone = FALSE;
+               break;
+            case -1:
+               perror("Error reading from network!\n");
+               keep_going = FALSE;
+               break;
+            default:
+               string[index] = input;
+               index++;
 
-   // read the int from data stream
-   read(socket, &input, sizeof(int));
+         }
+         if(input == '\n')
+         {
+            string[index] = '\0';
+            break;
+         }
+         if(input == 'q')
+         {
+            exit(EXIT_SUCCESS);
+         }
+      }
+      if(!NotDone)
+      {
+         break;
+      }
 
-   // calcuate the 3A + 1 algorithm
-   int output = three_a_plus_one(input);
+      double output = parseString(string, index);
+      write(socket, &output, sizeof(double));
 
-   // transmit the nunmber computed
-   write(socket, &output, sizeof(int));
+      printf("THREAD %d: Operation: %s \n the output is %f\n", id, string, output);
+   }
 
-   sleep(.5);
-
-   printf("THREAD %d: Given number: %d the output is %d\n", id, input, output);
-   printf("THREAD %d: Closed socket %d\n", id, socket);
    // cleanup
    if (close(socket) == -1) {
       perror("Error closing socket");
       exit(EXIT_FAILURE);
    }
+}
+
+double do_calc(double num1, double num2, char operation)
+{
+   if(operation == '/')
+   {
+      if(num2 == 0)
+      {
+         printf("Cannot Divide by Zero\n");
+         return -INFINITY;
+      }
+      return num1 / num2;
+   }
+   else if (operation == '-')
+   {
+      return num1 - num2;
+   }
+   else if(operation == '^')
+   {
+      return pow(num1, num2);
+   }
+   else if(operation == '+')
+   {
+      return num1 + num2;
+   }
+   else if (operation == '*')
+   {
+      return num1 * num2;
+   }
+   else if(operation == 's')
+   {
+      if(num1 < 0)
+      {
+         printf("Cannot take a sqrt of a negative number\n");
+         return -INFINITY;
+      }
+      return sqrt(num1);
+   }
+}
+
+double parseString(char *input, int index)
+{
+   // see number
+   char firstNum[20];
+   char secondNum[20];
+   int firstIndex = 0;
+   int secondIndex = 0;
+   char operation;
+   int first = 1;
+   int second = 0;
+   double num1;
+   double num2;
+
+   for (int i = 0; i < index; i++)
+   {
+      if(isdigit(input[i]) > 0 && first == 1)
+      {
+         firstNum[firstIndex] = input[i];
+         firstIndex++;
+      }
+      else if(isdigit(input[1]) > 0 && second == 1)
+      {
+         secondNum[secondIndex] = input[i];
+         secondIndex++;
+      }
+
+      if(input[i] == '/')
+      {
+         operation = '/';
+         first = 0;
+         second = 1;
+         firstNum[firstIndex] = '\0';
+      }
+      else if (input[i] == '-')
+      {
+         operation = '-';
+         first = 0;
+         second = 1;
+         firstNum[firstIndex] = '\0';
+
+      }
+      else if(input[i] == '^')
+      {
+         operation = '^';
+         first = 0;
+         second = 1;
+         firstNum[firstIndex] = '\0';
+
+      }
+      else if(input[i] == '+')
+      {
+         operation = '+';
+         first = 0;
+         firstNum[firstIndex] = '\0';
+         second = 1;
+      }
+      else if (input[i] == '*')
+      {
+         operation = '*';
+         first = 0;
+         second = 1;
+         firstNum[firstIndex] = '\0';
+
+      }
+      else if(input[i] == 's')
+      {
+         operation = 's';
+         first = 0;
+         second = 1;
+         firstNum[firstIndex] = '\0';
+      }
+   }
+   secondNum[secondIndex] = '\0';
+
+   num1 = atoi(firstNum);
+   if(operation != 's')
+   {
+      num2 = atoi(secondNum);
+   }
+   else
+   {
+      num2 = 1;
+   }
+
+   return do_calc(num1, num2, operation);
 }
