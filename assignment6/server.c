@@ -46,7 +46,8 @@ int main(int argc, char** argv) {
       ComputeClient(client_socket, 1);
    }
 }
-
+// for calculations assume negative signs are next to numbers and that their is a space between
+// the numbers and operations 10 / 2 not 10/2 might still work but is an assumption
 void ComputeClient(int socket, int id)
 {
    char input;
@@ -54,6 +55,8 @@ void ComputeClient(int socket, int id)
    int index = 0;
    int keep_going = TRUE;
    int NotDone = TRUE;
+
+   // read a input and compute while client is still computing
    while(NotDone)
    {
       index = 0;
@@ -109,6 +112,8 @@ void ComputeClient(int socket, int id)
    }
 }
 
+// does the calcuations with two numbers for most operations and just num2
+// for sqrt this is where we check if the numbers are valid or syntax is.
 double do_calc(double num1, double num2, char operation)
 {
    if(operation == '/')
@@ -147,6 +152,7 @@ double do_calc(double num1, double num2, char operation)
    }
 }
 
+// this is where we parse the string and get num1, num2, and operation to be performed
 double parseString(char *input, int index)
 {
    // see number
@@ -162,6 +168,7 @@ double parseString(char *input, int index)
    double num1;
    double num2;
 
+   // check if its a sqrt to use only one number
    ret = strstr(input, "sqrt");
    if(ret)
    {
@@ -169,10 +176,13 @@ double parseString(char *input, int index)
       operation = 's';
    }
 
+   // iterate through the string
    for (int i = 0; i < index; i++)
    {
+      // check if the char is a digit or is a . stores in first num else second num
       if((isdigit(input[i]) > 0 && first == 1) || input[i] == '.')
       {
+         // check if num is negative
          if(checkNeg(input, i))
          {
             firstNum[firstIndex] = '-';
@@ -192,12 +202,14 @@ double parseString(char *input, int index)
          secondIndex++;
       }
 
+      // this is used to check for what operations and to switch to using secondNum
       if(input[i] == '/')
       {
          operation = '/';
          first = 0;
          firstNum[firstIndex] = '\0';
       }
+      // have to differentate - the operator and - the sign
       else if (input[i] == '-' && !seenNeg && operation != 's' && input[0] != '-')
       {
          operation = '-';
@@ -228,12 +240,14 @@ double parseString(char *input, int index)
    }
    secondNum[secondIndex] = '\0';
 
+   // if operation is not available
    if(operation == 'E')
    {
       printf("Syntax Error\n");
       return -INFINITY;
    }
 
+   // convert to float
    num2 = atof(secondNum);
    if(operation != 's')
    {
@@ -248,6 +262,8 @@ double parseString(char *input, int index)
    return do_calc(num1, num2, operation);
 }
 
+// checks if the number is negative or not assumes negative sign is last char
+// before number
 int checkNeg(char *string, int i)
 {
    if(string[i - 1] == '-')

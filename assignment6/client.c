@@ -28,7 +28,7 @@ int main() {
     while(TRUE)
     {
       // simple message
-         printf("Input a function to compute or exit with q\n");
+         printf("Input a function to compute or exit with q:\n");
 
          // read a operation
          fgets(input, sizeof(input), stdin);
