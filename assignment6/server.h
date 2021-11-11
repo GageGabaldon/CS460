@@ -27,6 +27,7 @@
 void ComputeClient(int socket, int id);
 double do_calc(double num1, double num2, char operation);
 double parseString(char *input, int index);
+int checkNeg(char *string, int i);
 
 /************************************************************************
  * preprocessor directives

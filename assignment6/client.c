@@ -30,16 +30,18 @@ int main() {
       // simple message
          printf("Input a function to compute or exit with q\n");
 
-         // read an integer
+         // read a operation
          fgets(input, sizeof(input), stdin);
 
          if(input[0] == 'q')
          {
             char qi = 'q';
+            printf("Shutting Down Everything\n");
             write(client_socket, &qi, sizeof(char));
             break;
          }
 
+         // write to the server
          int i = 0;
          while (*(input + i))
          {
@@ -50,9 +52,23 @@ int main() {
 
          // get the result
          read(client_socket, &output, sizeof(double));
+
+         // if the result is a non accepted operation
          if(output == -INFINITY)
          {
-            printf("Syntax Error\n");
+            int divideByZero = FALSE;
+            for(int i = 0; i < strlen(input); i++)
+            {
+               if(input[i] == '0' && input[i - 2] == '/')
+               {
+                  printf("Cannot divide by 0\n");
+                  divideByZero = TRUE;
+               }
+            }
+            if(!divideByZero)
+            {
+               printf("Syntax Error\n");
+            }
          }
          else
          {

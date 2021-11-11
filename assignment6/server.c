@@ -76,15 +76,15 @@ void ComputeClient(int socket, int id)
             default:
                string[index] = input;
                index++;
-
          }
          if(input == '\n')
          {
             string[index] = '\0';
             break;
          }
-         if(input == 'q')
+         if(string[0] == 'q')
          {
+            printf("Shutting Down Server\n");
             exit(EXIT_SUCCESS);
          }
       }
@@ -93,10 +93,13 @@ void ComputeClient(int socket, int id)
          break;
       }
 
+      // parse the string for input
       double output = parseString(string, index);
+
+      // write to the client
       write(socket, &output, sizeof(double));
 
-      printf("THREAD %d: Operation: %s \n the output is %f\n", id, string, output);
+      printf("Operation: %sOutput: %f\n", string, output);
    }
 
    // cleanup
@@ -135,12 +138,12 @@ double do_calc(double num1, double num2, char operation)
    }
    else if(operation == 's')
    {
-      if(num1 < 0)
+      if(num2 < 0)
       {
          printf("Cannot take a sqrt of a negative number\n");
          return -INFINITY;
       }
-      return sqrt(num1);
+      return sqrt(num2);
    }
 }
 
@@ -151,21 +154,40 @@ double parseString(char *input, int index)
    char secondNum[20];
    int firstIndex = 0;
    int secondIndex = 0;
-   char operation;
+   char operation = 'E';
+   char *ret;
    int first = 1;
    int second = 0;
+   int seenNeg = FALSE;
    double num1;
    double num2;
 
+   ret = strstr(input, "sqrt");
+   if(ret)
+   {
+      first = 0;
+      operation = 's';
+   }
+
    for (int i = 0; i < index; i++)
    {
-      if(isdigit(input[i]) > 0 && first == 1)
+      if((isdigit(input[i]) > 0 && first == 1) || input[i] == '.')
       {
+         if(checkNeg(input, i))
+         {
+            firstNum[firstIndex] = '-';
+            firstIndex++;
+         }
          firstNum[firstIndex] = input[i];
          firstIndex++;
       }
-      else if(isdigit(input[1]) > 0 && second == 1)
+      else if((isdigit(input[i]) > 0 && first == 0) || input[i] == '.')
       {
+         if(checkNeg(input, i))
+         {
+            secondNum[secondIndex] = '-';
+            secondIndex++;
+         }
          secondNum[secondIndex] = input[i];
          secondIndex++;
       }
@@ -174,22 +196,19 @@ double parseString(char *input, int index)
       {
          operation = '/';
          first = 0;
-         second = 1;
          firstNum[firstIndex] = '\0';
       }
-      else if (input[i] == '-')
+      else if (input[i] == '-' && !seenNeg && operation != 's' && input[0] != '-')
       {
          operation = '-';
          first = 0;
-         second = 1;
          firstNum[firstIndex] = '\0';
-
+         seenNeg = TRUE;
       }
       else if(input[i] == '^')
       {
          operation = '^';
          first = 0;
-         second = 1;
          firstNum[firstIndex] = '\0';
 
       }
@@ -198,35 +217,42 @@ double parseString(char *input, int index)
          operation = '+';
          first = 0;
          firstNum[firstIndex] = '\0';
-         second = 1;
       }
       else if (input[i] == '*')
       {
          operation = '*';
          first = 0;
-         second = 1;
          firstNum[firstIndex] = '\0';
 
-      }
-      else if(input[i] == 's')
-      {
-         operation = 's';
-         first = 0;
-         second = 1;
-         firstNum[firstIndex] = '\0';
       }
    }
    secondNum[secondIndex] = '\0';
 
-   num1 = atoi(firstNum);
+   if(operation == 'E')
+   {
+      printf("Syntax Error\n");
+      return -INFINITY;
+   }
+
+   num2 = atof(secondNum);
    if(operation != 's')
    {
-      num2 = atoi(secondNum);
+      num1 = atof(firstNum);
    }
    else
    {
-      num2 = 1;
+      num1 = 0;
    }
+   printf("FirstNum %f, SecondNum %f Operation, %c\n", num1, num2, operation);
 
    return do_calc(num1, num2, operation);
+}
+
+int checkNeg(char *string, int i)
+{
+   if(string[i - 1] == '-')
+   {
+      return TRUE;
+   }
+   return FALSE;
 }
